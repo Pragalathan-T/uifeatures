@@ -1,0 +1,4 @@
+.exam-details { max-width: 720px; margin: 20px auto; padding: 16px; }
+.exam-details__desc { color: #374151; }
+.exam-details__meta { display: flex; gap: 16px; flex-wrap: wrap; margin: 10px 0; color: #4b5563; }
+.exam-details__box { border: 1px solid #e5e7eb; background: #f9fafb; padding: 12px; border-radius: 8px; }

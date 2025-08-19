@@ -1,0 +1,5 @@
+.profile { max-width: 600px; margin: 30px auto; padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; }
+.profile__row { display: grid; grid-template-columns: 120px 1fr; gap: 10px; margin-bottom: 10px; align-items: center; }
+.profile__row input { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; }
+.profile button { padding: 10px 14px; background: #2563eb; color: #fff; border: 0; border-radius: 6px; cursor: pointer; }
+.profile__msg { color: #065f46; margin-top: 10px; }

@@ -1,0 +1,7 @@
+.creator { max-width: 760px; margin: 20px auto; padding: 16px; }
+.creator h1, .creator h2, .creator h3 { margin: 10px 0; }
+.creator label { display: block; margin: 8px 0; }
+.creator input { padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; }
+.creator button { margin-top: 8px; padding: 10px 14px; border: 0; border-radius: 6px; background: #111827; color: #fff; cursor: pointer; }
+.creator ul { list-style: disc; padding-left: 20px; }
+.creator span { font-size: 12px; }

@@ -1,0 +1,8 @@
+.admin { max-width: 900px; margin: 20px auto; padding: 16px; }
+.admin__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.admin__card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.admin__card input { padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; }
+.admin__card button { align-self: flex-start; padding: 8px 12px; background: #111827; color: #fff; border: 0; border-radius: 6px; cursor: pointer; }
+.admin__result { background: #f9fafb; padding: 8px; border-radius: 6px; }
+.admin__msg { color: #065f46; }
+.admin__err { color: #b91c1c; }

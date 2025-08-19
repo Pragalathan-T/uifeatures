@@ -1,0 +1,4 @@
+.exam-list { max-width: 760px; margin: 20px auto; padding: 16px; }
+.exam-list ul { list-style: none; padding: 0; }
+.exam-list li { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+.exam-list h2 { margin: 0 0 6px; }

@@ -1,0 +1,6 @@
+.auth { max-width: 360px; margin: 40px auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; }
+.auth__form { display: flex; flex-direction: column; gap: 10px; }
+.auth__form input { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; }
+.auth__form button { padding: 10px; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+.auth__form button:hover { background: #1d4ed8; }
+.auth__error { color: #b91c1c; margin-top: 10px; }

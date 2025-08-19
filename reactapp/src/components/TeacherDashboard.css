@@ -1,0 +1,4 @@
+.td { max-width: 900px; margin: 20px auto; padding: 16px; }
+.td ul { list-style: none; padding: 0; }
+.td li { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: grid; gap: 6px; }
+.td button { justify-self: start; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #f9fafb; }

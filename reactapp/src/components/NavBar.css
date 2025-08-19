@@ -1,0 +1,20 @@
+
+.page{max-width:900px;margin:24px auto;padding:0 16px}
+.center{display:flex;align-items:center;justify-content:center}
+
+
+.form{display:grid;gap:12px}
+.form-2col{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.form-2col > *{min-width:0}
+.form label{display:block;margin-bottom:6px;color:var(--muted);font-size:14px}
+.form .input, .form select, .form textarea{width:100%}
+
+
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.card-header{font-weight:600;margin-bottom:8px}
+.card-meta{color:var(--muted);font-size:14px;margin:4px 0}
+.card-actions{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+
+.hero{padding:48px 16px;text-align:center}
+.hero h1{margin:0 0 8px 0}
+.hero p{color:var(--muted);margin:0 0 16px 0}

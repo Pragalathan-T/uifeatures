@@ -1,0 +1,6 @@
+.history { padding: 16px; max-width: 900px; margin: 20px auto; }
+.history__table { width: 100%; border-collapse: collapse; }
+.history__table th, .history__table td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
+.history__table th { background: #f3f4f6; }
+.history__pager { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+.history__error { color: #b91c1c; }
