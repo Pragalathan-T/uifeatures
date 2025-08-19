@@ -5,26 +5,28 @@ import com.examly.springapp.model.Admin;
 import com.examly.springapp.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
+@PreAuthorize("@rbac.allowed('ADMIN')")
 public class AdminController {
 
     @Autowired
     private AdminService adminService;
 
     @PostMapping
-    public ResponseEntity<AdminDTO> createAdmin(@RequestBody AdminDTO adminDTO) {
+    public ResponseEntity<AdminDTO> createAdmin(@RequestBody Map<String, String> body) {
         Admin admin = new Admin();
-        admin.setUsername(adminDTO.getUsername());
-        admin.setPassword(adminDTO.getPassword());
-        admin.setEmail(adminDTO.getEmail());
+        admin.setUsername(body.get("username"));
+        admin.setPassword(body.get("password"));
+        admin.setEmail(body.get("email"));
 
         Admin saved = adminService.saveAdmin(admin);
-
         AdminDTO responseDTO = new AdminDTO(saved.getUsername(), saved.getPassword(), saved.getEmail());
         return ResponseEntity.ok(responseDTO);
     }

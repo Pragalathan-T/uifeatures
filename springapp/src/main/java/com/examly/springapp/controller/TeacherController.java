@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.*;
 import java.time.LocalDateTime;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
+@RequestMapping("/api/teacher")
+@PreAuthorize("@rbac.allowed('TEACHER','ADMIN')")
 @RequestMapping("/api/exams")
 public class TeacherController {
 

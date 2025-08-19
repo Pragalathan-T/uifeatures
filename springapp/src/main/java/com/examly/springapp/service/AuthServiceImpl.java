@@ -22,98 +22,104 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.examly.springapp.config.JwtService;
+
+import java.util.Map;
 
 @Service
 public class AuthServiceImpl implements AuthService, UserDetailsService {
 
-private final UserRepository userRepository;
-private final PasswordEncoder passwordEncoder;
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
 
-@Lazy
-@Autowired
-private AuthenticationManager authenticationManager;
+  @Lazy
+  @Autowired
+  private AuthenticationManager authenticationManager;
 
-public AuthServiceImpl(UserRepository userRepository, @Lazy PasswordEncoder passwordEncoder) {
-this.userRepository = userRepository;
-this.passwordEncoder = passwordEncoder;
-}
+  private final JwtService jwtService;
 
+  public AuthServiceImpl(UserRepository userRepository, @Lazy PasswordEncoder passwordEncoder, JwtService jwtService) {
+    this.userRepository = userRepository;
+    this.passwordEncoder = passwordEncoder;
+    this.jwtService = jwtService;
+  }
 
-@Override
-public AuthResponseDTO login(AuthRequestDTO request) {
-try {
-Authentication auth = authenticationManager.authenticate(
-new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-);
+  @Override
+  public AuthResponseDTO login(AuthRequestDTO request) {
+    try {
+      Authentication auth = authenticationManager.authenticate(
+        new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+      );
 
-User user = userRepository.findByUsername(request.getUsername())
-.orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password"));
+      User user = userRepository.findByUsername(request.getUsername())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password"));
 
-SecurityContextHolder.getContext().setAuthentication(auth);
+      SecurityContextHolder.getContext().setAuthentication(auth);
 
-String token = "dummy-token-for-" + user.getUsername();
-return new AuthResponseDTO(token, user.getUsername(), user.getRole());
-} catch (org.springframework.security.core.AuthenticationException ex) {
-throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
-}
-}
+      String token = jwtService.generateToken(user.getUsername(), user.getRole(), Map.of());
+      return new AuthResponseDTO(token, user.getUsername(), user.getRole());
+    } catch (org.springframework.security.core.AuthenticationException ex) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+    }
+  }
 
-@Override
-public void register(RegisterRequestDTO request) {
-if (userRepository.existsByUsername(request.getUsername())) {
-throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already in use");
-}
-if (userRepository.existsByEmail(request.getEmail())) {
-throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
-}
+  @Override
+  public void register(RegisterRequestDTO request) {
+    if (userRepository.existsByUsername(request.getUsername())) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already in use");
+    }
+    if (userRepository.existsByEmail(request.getEmail())) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
+    }
 
-try {
-User newUser;
-String roleUpper = request.getRole() == null ? "STUDENT" : request.getRole().toUpperCase();
-switch (roleUpper) {
-case "TEACHER":
-newUser = new Teacher();
-break;
-case "ADMIN":
-newUser = new Admin();
-break;
-case "STUDENT":
-newUser = new Student();
-break;
-default:
-throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role");
-}
+    try {
+      User newUser;
+      String roleUpper = request.getRole() == null ? "STUDENT" : request.getRole().toUpperCase();
+      switch (roleUpper) {
+        case "TEACHER": newUser = new Teacher(); break;
+        case "ADMIN": newUser = new Admin(); break;
+        case "STUDENT": newUser = new Student(); break;
+        default: throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role");
+      }
 
-newUser.setName(request.getName());
-newUser.setEmail(request.getEmail());
-newUser.setUsername(request.getUsername());
-newUser.setPassword(passwordEncoder.encode(request.getPassword()));
-newUser.setRole(roleUpper);
+      newUser.setName(request.getName());
+      newUser.setEmail(request.getEmail());
+      newUser.setUsername(request.getUsername());
+      newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+      newUser.setRole(roleUpper);
 
-userRepository.save(newUser);
-} catch (DataIntegrityViolationException ex) {
-throw new ResponseStatusException(HttpStatus.CONFLICT, "Email or Username already exists");
-} catch (ResponseStatusException ex) {
-throw ex;
-} catch (Exception ex) {
-throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Registration failed");
-}
-}
+      userRepository.save(newUser);
+    } catch (DataIntegrityViolationException ex) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Email or Username already exists");
+    } catch (ResponseStatusException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Registration failed");
+    }
+  }
 
-@Override
-public void logout() {
-SecurityContextHolder.clearContext();
-}
+  @Override
+  public void logout() {
+    SecurityContextHolder.clearContext();
+  }
 
-@Override
-public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-User user = userRepository.findByUsername(username)
-.orElseThrow(() -> new UsernameNotFoundException("User not found"));
-String role = user.getRole() == null ? "STUDENT" : user.getRole(); // default if null
-return org.springframework.security.core.userdetails.User
-.withUsername(user.getUsername())
-.password(user.getPassword())
-.roles(role) // no "ROLE_" prefix here
-.build();
-}
+  @Override
+  public AuthResponseDTO refresh(String username) {
+    User user = userRepository.findByUsername(username)
+      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    String token = jwtService.generateToken(user.getUsername(), user.getRole(), Map.of("refresh", true));
+    return new AuthResponseDTO(token, user.getUsername(), user.getRole());
+  }
+
+  @Override
+  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    User user = userRepository.findByUsername(username)
+      .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    String role = user.getRole() == null ? "STUDENT" : user.getRole();
+    return org.springframework.security.core.userdetails.User
+      .withUsername(user.getUsername())
+      .password(user.getPassword())
+      .roles(role)
+      .build();
+  }
 }

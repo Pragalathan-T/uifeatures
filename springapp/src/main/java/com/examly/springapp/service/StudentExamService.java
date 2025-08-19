@@ -22,95 +22,122 @@ import org.springframework.data.domain.*;
 @Service
 public class StudentExamService {
 
-@Autowired
-private StudentExamRepository studentExamRepository;
+  @Autowired private StudentExamRepository studentExamRepository;
+  @Autowired private ExamRepository examRepository;
+  @Autowired private QuestionRepository questionRepository;
+  @Autowired private StudentAnswerRepository studentAnswerRepository;
 
-@Autowired
-private ExamRepository examRepository;
+  public Map<String, Object> startExam(Long examId, String studentUsername) {
+    Exam exam = examRepository.findById(examId)
+      .orElseThrow(() -> new IllegalArgumentException("Exam not found"));
 
-@Autowired
-private QuestionRepository questionRepository;
+    // Enforce availability at start
+    if (!Boolean.TRUE.equals(exam.getIsActive())) {
+      throw new IllegalArgumentException("Exam not active");
+    }
+    if (exam.getExpiryDate() != null && LocalDateTime.now().isAfter(exam.getExpiryDate())) {
+      throw new IllegalArgumentException("Exam expired");
+    }
 
-@Autowired
-private StudentAnswerRepository studentAnswerRepository;
+    List<StudentExam> existing = studentExamRepository.findByExamAndStudentUsernameAndStatusIn(
+      exam, studentUsername, List.of("IN_PROGRESS", "COMPLETED")
+    );
 
-public Map<String, Object> startExam(Long examId, String studentUsername) {
-Exam exam = examRepository.findById(examId)
-.orElseThrow(() -> new IllegalArgumentException("Exam not found"));
+    // Prevent parallel sessions
+    boolean hasInProgress = existing.stream().anyMatch(se -> "IN_PROGRESS".equals(se.getStatus()));
+    if (hasInProgress) {
+      throw new IllegalArgumentException("Student already has an active attempt for this exam");
+    }
 
-List<StudentExam> existing = studentExamRepository.findByExamAndStudentUsernameAndStatusIn(exam, studentUsername, List.of("IN_PROGRESS", "COMPLETED"));
+    // Enforce maximum attempts for completed attempts only
+    Integer maxAttempts = exam.getMaxAttempts();
+    if (maxAttempts != null && maxAttempts > 0) {
+      long completed = existing.stream().filter(se -> "COMPLETED".equals(se.getStatus())).count();
+      if (completed >= maxAttempts) {
+        throw new IllegalArgumentException("Maximum attempts reached for this exam");
+      }
+    }
 
-if (!existing.isEmpty()) {
-throw new IllegalArgumentException("Student already has an active attempt for this exam");
-}
+    StudentExam studentExam = new StudentExam();
+    studentExam.setExam(exam);
+    studentExam.setStudentUsername(studentUsername);
+    studentExam.setStartTime(LocalDateTime.now());
+    // If endTime is non-nullable in schema, set a placeholder; it will be updated on completion
+    studentExam.setEndTime(studentExam.getStartTime());
+    studentExam.setStatus("IN_PROGRESS");
+    studentExam = studentExamRepository.save(studentExam);
 
-StudentExam studentExam = new StudentExam();
-studentExam.setExam(exam);
-studentExam.setStudentUsername(studentUsername);
-studentExam.setStartTime(LocalDateTime.now());
-studentExam.setStatus("IN_PROGRESS");
-studentExam = studentExamRepository.save(studentExam);
+    Map<String, Object> response = new HashMap<>();
+    response.put("studentExamId", studentExam.getStudentExamId());
+    return response;
+  }
 
-Map<String, Object> response = new HashMap<>();
-response.put("studentExamId", studentExam.getStudentExamId());
-return response;
-}
-
-public StudentAnswer submitAnswer(Long studentExamId, Long questionId, String selectedOption) {
-StudentExam studentExam = studentExamRepository.findById(studentExamId)
-.orElseThrow(() -> new IllegalArgumentException("StudentExam not found"));
-
-Question question = questionRepository.findById(questionId)
-.orElseThrow(() -> new IllegalArgumentException("Question not found"));
-
-StudentAnswer existing = studentAnswerRepository.findByStudentExamAndQuestion(studentExam, question);
-if (existing != null) {
-throw new IllegalArgumentException("Question already answered");
-}
-
-boolean isCorrect = question.getCorrectOption().equalsIgnoreCase(selectedOption);
-
-StudentAnswer answer = new StudentAnswer();
-answer.setStudentExam(studentExam);
-answer.setQuestion(question);
-answer.setSelectedOption(selectedOption);
-answer.setIsCorrect(isCorrect);
-
-return studentAnswerRepository.save(answer);
-}
-
-public Map<String, Object> completeExam(Long studentExamId) {
-StudentExam studentExam = studentExamRepository.findById(studentExamId)
-.orElseThrow(() -> new IllegalArgumentException("StudentExam not found"));
-
-List<StudentAnswer> answers = studentAnswerRepository.findByStudentExam(studentExam);
-int totalScore = 0;
-
-for (StudentAnswer ans : answers) {
-if (Boolean.TRUE.equals(ans.getIsCorrect())) {
-totalScore += ans.getQuestion().getMarks();
-}
-}
-
-studentExam.setEndTime(LocalDateTime.now());
-studentExam.setScore(totalScore);
-studentExam.setStatus("COMPLETED");
-studentExamRepository.save(studentExam);
-
-Map<String, Object> response = new HashMap<>();
-response.put("finalScore", totalScore);
-return response;
-}
-
-public List<Exam> getAvailableExams() {
-return examRepository.findByIsActiveTrue();
-}
-
-public Map<String, Object> getResults(Long studentExamId) {
+  public StudentAnswer submitAnswer(Long studentExamId, Long questionId, String selectedOption) {
     StudentExam studentExam = studentExamRepository.findById(studentExamId)
-    .orElseThrow(() -> new IllegalArgumentException("StudentExam not found"));
+      .orElseThrow(() -> new IllegalArgumentException("StudentExam not found"));
 
-    Exam exam = studentExam.getExam(); // Might be null
+    // Allow answers only while in progress
+    if (!"IN_PROGRESS".equals(studentExam.getStatus())) {
+      throw new IllegalArgumentException("Exam is not in progress");
+    }
+
+    Question question = questionRepository.findById(questionId)
+      .orElseThrow(() -> new IllegalArgumentException("Question not found"));
+
+    StudentAnswer existing = studentAnswerRepository.findByStudentExamAndQuestion(studentExam, question);
+    if (existing != null) {
+      throw new IllegalArgumentException("Question already answered");
+    }
+
+    boolean isCorrect = question.getCorrectOption().equalsIgnoreCase(selectedOption);
+
+    StudentAnswer answer = new StudentAnswer();
+    answer.setStudentExam(studentExam);
+    answer.setQuestion(question);
+    answer.setSelectedOption(selectedOption);
+    answer.setIsCorrect(isCorrect);
+
+    return studentAnswerRepository.save(answer);
+  }
+
+  public Map<String, Object> completeExam(Long studentExamId) {
+    StudentExam studentExam = studentExamRepository.findById(studentExamId)
+      .orElseThrow(() -> new IllegalArgumentException("StudentExam not found"));
+
+    if ("COMPLETED".equals(studentExam.getStatus())) {
+      Map<String, Object> response = new HashMap<>();
+      response.put("finalScore", studentExam.getScore() == null ? 0 : studentExam.getScore());
+      return response;
+    }
+
+    List<StudentAnswer> answers = studentAnswerRepository.findByStudentExam(studentExam);
+    int totalScore = 0;
+
+    for (StudentAnswer ans : answers) {
+      if (Boolean.TRUE.equals(ans.getIsCorrect())) {
+        totalScore += ans.getQuestion().getMarks();
+      }
+    }
+
+    studentExam.setEndTime(LocalDateTime.now());
+    studentExam.setScore(totalScore);
+    studentExam.setStatus("COMPLETED");
+    studentExamRepository.save(studentExam);
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("finalScore", totalScore);
+    return response;
+  }
+
+  public List<Exam> getAvailableExams() {
+    return examRepository.findByIsActiveTrue();
+  }
+
+  public Map<String, Object> getResults(Long studentExamId) {
+    StudentExam studentExam = studentExamRepository.findById(studentExamId)
+      .orElseThrow(() -> new IllegalArgumentException("StudentExam not found"));
+
+    Exam exam = studentExam.getExam();
 
     Map<String, Object> result = new HashMap<>();
     result.put("examTitle", exam != null ? exam.getTitle() : "N/A");
@@ -121,38 +148,33 @@ public Map<String, Object> getResults(Long studentExamId) {
     List<Map<String, Object>> questionDetails = new ArrayList<>();
 
     for (StudentAnswer answer : answers) {
-    Question q = answer.getQuestion();
-    Map<String, Object> qDetail = new HashMap<>();
-    qDetail.put("questionId", q.getQuestionId());
-    qDetail.put("questionText", q.getQuestionText());
-    qDetail.put("optionA", q.getOptionA());
-    qDetail.put("optionB", q.getOptionB());
-    qDetail.put("optionC", q.getOptionC());
-    qDetail.put("optionD", q.getOptionD());
-    qDetail.put("correctOption", q.getCorrectOption());
-    qDetail.put("marks", q.getMarks());
-    qDetail.put("selectedOption", answer.getSelectedOption());
-    qDetail.put("isCorrect", answer.getIsCorrect());
-    qDetail.put("marksEarned", Boolean.TRUE.equals(answer.getIsCorrect()) ? q.getMarks() : 0);
-    questionDetails.add(qDetail);
+      Question q = answer.getQuestion();
+      Map<String, Object> qDetail = new HashMap<>();
+      qDetail.put("questionId", q.getQuestionId());
+      qDetail.put("questionText", q.getQuestionText());
+      qDetail.put("optionA", q.getOptionA());
+      qDetail.put("optionB", q.getOptionB());
+      qDetail.put("optionC", q.getOptionC());
+      qDetail.put("optionD", q.getOptionD());
+      qDetail.put("correctOption", q.getCorrectOption());
+      qDetail.put("marks", q.getMarks());
+      qDetail.put("selectedOption", answer.getSelectedOption());
+      qDetail.put("isCorrect", answer.getIsCorrect());
+      qDetail.put("marksEarned", Boolean.TRUE.equals(answer.getIsCorrect()) ? q.getMarks() : 0);
+      questionDetails.add(qDetail);
     }
 
     result.put("questions", questionDetails);
     return result;
-    }
+  }
 
-    public Page<StudentExam> getExamHistory(Long studentId, Pageable pageable) {
-                return studentExamRepository.findByStudent_UserId(studentId, pageable);
-                    }
+  public Page<StudentExam> getExamHistory(Long studentId, Pageable pageable) {
+    return studentExamRepository.findByStudent_UserId(studentId, pageable);
+  }
 
-                    public Page<Exam> getAvailableExams(int page, int size, String sortBy, String sortDir) {
-                            Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-                                Pageable pageable = PageRequest.of(page, size, sort);
-                                    return examRepository.findByIsActiveTrue(pageable);
-                                    }
-
-                    }
-
-
-
-
+  public Page<Exam> getAvailableExams(int page, int size, String sortBy, String sortDir) {
+    Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+    Pageable pageable = PageRequest.of(page, size, sort);
+    return examRepository.findByIsActiveTrue(pageable);
+  }
+}

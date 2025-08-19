@@ -1,4 +1,3 @@
-
 package com.examly.springapp.controller;
 
 import com.examly.springapp.dto.AuthRequestDTO;
@@ -10,34 +9,40 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @CrossOrigin(
-    origins = "https://8081-aeadacfbdbdedbdbcdacedeffadbcfbbaaddea.premiumproject.examly.io",
-    allowCredentials = "true"
-    )
-
+  origins = "https://8081-aeadacfbdbdedbdbcdacedeffadbcfbbaaddea.premiumproject.examly.io",
+  allowCredentials = "true"
+)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-@Autowired
-private AuthService authService;
+  @Autowired
+  private AuthService authService;
 
-@PostMapping("/login")
-public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthRequestDTO loginRequest) {
-AuthResponseDTO response = authService.login(loginRequest);
-return ResponseEntity.ok(response);
-}
+  @PostMapping("/login")
+  public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthRequestDTO loginRequest) {
+    AuthResponseDTO response = authService.login(loginRequest);
+    return ResponseEntity.ok(response);
+  }
 
-@PostMapping("/register")
-public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDTO registerRequest) {
-authService.register(registerRequest);
-return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
-}
+  @PostMapping("/register")
+  public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDTO registerRequest) {
+    authService.register(registerRequest);
+    return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
+  }
 
-@PostMapping("/logout")
-public ResponseEntity<String> logout() {
-authService.logout();
-return ResponseEntity.ok("Logged out successfully");
-}
+  @PostMapping("/logout")
+  public ResponseEntity<String> logout() {
+    authService.logout();
+    return ResponseEntity.ok("Logged out successfully");
+  }
+
+  @PostMapping("/refresh")
+  public ResponseEntity<AuthResponseDTO> refresh(@RequestBody AuthRequestDTO req) {
+    AuthResponseDTO refreshed = authService.refresh(req.getUsername());
+    return ResponseEntity.ok(refreshed);
+  }
 }
