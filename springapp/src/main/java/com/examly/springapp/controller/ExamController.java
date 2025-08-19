@@ -13,9 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/exams")
-@PreAuthorize("@rbac.allowed('TEACHER','ADMIN')")
 @RequestMapping("/api/exam-management")
+@PreAuthorize("@rbac.allowed('TEACHER','ADMIN')")
 public class ExamController {
 
 @Autowired

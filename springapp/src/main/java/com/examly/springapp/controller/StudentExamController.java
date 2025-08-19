@@ -10,12 +10,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize; // keep only ONE of this
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
-import org.springframework.security.access.prepost.PreAuthorize;
-@RestController
 
+@RestController
 @RequestMapping("/api/student-exams")
 @PreAuthorize("@rbac.allowed('STUDENT')")
 public class StudentExamController {

@@ -8,10 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
-@RequestMapping("/api/student")
-@PreAuthorize("@rbac.allowed('STUDENT')")
 @RequestMapping("/api/student/exams")
+@PreAuthorize("@rbac.allowed('STUDENT')")
 public class StudentController {
 
 @Autowired

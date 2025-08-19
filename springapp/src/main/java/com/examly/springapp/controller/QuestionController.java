@@ -20,7 +20,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/questions")
 @PreAuthorize("@rbac.allowed('TEACHER','ADMIN')")
-@RequestMapping("/api/questions")
 public class QuestionController {
 
 @Autowired
