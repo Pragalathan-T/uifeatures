@@ -1,6 +1,7 @@
 import React from 'react';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
+import ChatWidget from '../components/ChatWidget';
 
 export default function MainLayout({ children }) {
 return (
@@ -10,6 +11,7 @@ return (
 {children}
 </main>
 <Footer />
+<ChatWidget />
 </div>
 );
 }

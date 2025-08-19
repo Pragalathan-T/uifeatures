@@ -22,22 +22,25 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.examly.springapp.config.JwtService;
+import java.util.Map;
 
 @Service
 public class AuthServiceImpl implements AuthService, UserDetailsService {
 
 private final UserRepository userRepository;
 private final PasswordEncoder passwordEncoder;
-
 @Lazy
 @Autowired
 private AuthenticationManager authenticationManager;
+private final JwtService jwtService;
 
-public AuthServiceImpl(UserRepository userRepository, @Lazy PasswordEncoder passwordEncoder) {
+public AuthServiceImpl(UserRepository userRepository, @Lazy PasswordEncoder passwordEncoder, JwtService jwtService) {
 this.userRepository = userRepository;
 this.passwordEncoder = passwordEncoder;
+jwtService.getClass();
+this.jwtService = jwtService;
 }
-
 
 @Override
 public AuthResponseDTO login(AuthRequestDTO request) {
@@ -51,7 +54,7 @@ User user = userRepository.findByUsername(request.getUsername())
 
 SecurityContextHolder.getContext().setAuthentication(auth);
 
-String token = "dummy-token-for-" + user.getUsername();
+String token = jwtService.generateToken(user.getUsername(), user.getRole(), Map.of());
 return new AuthResponseDTO(token, user.getUsername(), user.getRole());
 } catch (org.springframework.security.core.AuthenticationException ex) {
 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
@@ -106,14 +109,22 @@ SecurityContextHolder.clearContext();
 }
 
 @Override
+public AuthResponseDTO refresh(String username) {
+User user = userRepository.findByUsername(username)
+.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+String token = jwtService.generateToken(user.getUsername(), user.getRole(), Map.of("refresh", true));
+return new AuthResponseDTO(token, user.getUsername(), user.getRole());
+}
+
+@Override
 public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 User user = userRepository.findByUsername(username)
 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-String role = user.getRole() == null ? "STUDENT" : user.getRole(); // default if null
+String role = user.getRole() == null ? "STUDENT" : user.getRole();
 return org.springframework.security.core.userdetails.User
 .withUsername(user.getUsername())
 .password(user.getPassword())
-.roles(role) // no "ROLE_" prefix here
+.roles(role)
 .build();
 }
 }

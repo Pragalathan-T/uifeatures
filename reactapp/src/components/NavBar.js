@@ -49,7 +49,7 @@ const navigate = useNavigate();
 const { isAuthenticated, username, logout } = useAuth();
 
 const handleLogout = async () => {
-try { await api.logout(); } catch {
+try { await api.logout(); } catch {}
 await logout();
 navigate('/');
 };
@@ -81,5 +81,4 @@ return (
 </div>
 </nav>
 );
-}
 }

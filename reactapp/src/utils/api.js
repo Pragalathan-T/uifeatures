@@ -116,7 +116,6 @@ title: raw.examTitle ?? raw.exam?.title ?? '',
 description: raw.description ?? raw.exam?.description ?? '',
 },
 score: raw.score ?? 0,
-// ... keep rest as-is if present below ...
 }));
 };
 
@@ -125,51 +124,6 @@ export const getQuestionsByExam = async (examId) => {
 const response = await fetch(`${BASE_URL}/questions/by-exam/${examId}`);
 return toData(response);
 };
-
-
-// // StudentController (/api/student/exams)
-// export const getAvailableExams = async () => {
-// const response = await fetch(`${BASE_URL}/student/exams`);
-// return toData(response);
-// };
-
-// export const startExam = async (examId, studentUsername) => {
-// const response = await fetch(`${BASE_URL}/student/exams/${examId}/start`, {
-// method: 'POST',
-// headers: { 'Content-Type': 'application/json' },
-// body: JSON.stringify({ studentUsername }),
-// });
-// return toData(response);
-// };
-
-// export const submitAnswer = async (studentExamId, answerData) => {
-// const response = await fetch(`${BASE_URL}/student/exams/${studentExamId}/answers`, {
-// method: 'POST',
-// headers: { 'Content-Type': 'application/json' },
-// body: JSON.stringify(answerData),
-// });
-// return toData(response);
-// };
-
-// export const completeExam = async (studentExamId) => {
-// const response = await fetch(`${BASE_URL}/student/exams/${studentExamId}/complete`, { method: 'POST' });
-// return toData(response);
-// };
-
-// export const getExamResults = async (studentExamId) => {
-// const response = await fetch(`${BASE_URL}/student/exams/${studentExamId}/results`);
-// return toDataTransform(response, (raw) => ({
-// exam: {
-// title: raw.examTitle ?? raw.exam?.title ?? '',
-// description: raw.description ?? raw.exam?.description ?? '',
-// },
-// score: raw.score ?? 0,
-// total: raw.total ?? (Array.isArray(raw.questions) ? raw.questions.reduce((s, q) => s + (q.marks || 0), 0) : undefined),
-// questions: Array.isArray(raw.questions)
-// ? raw.questions.map((q) => ({ ...q, studentAnswer: q.selectedOption ?? q.studentAnswer ?? null }))
-// : [],
-// }));
-// };
 
 // AuthController (/api/auth)
 export const login = async ({ username, password }) => {
@@ -330,6 +284,16 @@ body: JSON.stringify(payload),
 return toData(response);
 };
 
+// ChatController (/api/chat)
+export const chatMessage = async ({ message, userId, context }) => {
+const response = await fetch(`${BASE_URL}/chat/message`, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ message, userId, context }),
+});
+return toData(response);
+};
+
 const api = {
 // teacher
 createExam,
@@ -367,5 +331,8 @@ mgmtUpdateExamStatus,
 validateStudentAnswer,
 validateQuestion,
 validateExam,
+// chat
+chatMessage,
 };
 export default api;
+
