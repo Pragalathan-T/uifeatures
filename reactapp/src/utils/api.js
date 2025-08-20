@@ -6,7 +6,6 @@ const BASE_URL = RAW_BASE.endsWith('/api')
 const authFetch = (url, options = {}) => {
   const token = localStorage.getItem('token');
   const headers = { ...(options.headers || {}) };
-  // Only set Content-Type when sending a body or a non-GET method
   if (options.body != null || (options.method && options.method.toUpperCase() !== 'GET')) {
     headers['Content-Type'] = 'application/json';
   }
@@ -14,7 +13,18 @@ const authFetch = (url, options = {}) => {
   return fetch(url, { ...options, headers });
 };
 
+const handleAuthFailure = () => {
+  // Lightweight handler: clear credentials so future calls are unauthenticated
+  localStorage.removeItem('token');
+  // Optional: also clear role/username if you want
+  // localStorage.removeItem('role');
+  // localStorage.removeItem('username');
+};
+
 const toData = async (response) => {
+  if (response.status === 401 || response.status === 403) {
+    handleAuthFailure();
+  }
   const text = await response.text();
   const maybeJson = text ? (() => { try { return JSON.parse(text); } catch { return text; } })() : null;
 
@@ -28,6 +38,9 @@ const toData = async (response) => {
 };
 
 const toDataTransform = async (response, transformFn) => {
+  if (response.status === 401 || response.status === 403) {
+    handleAuthFailure();
+  }
   const text = await response.text();
   const maybeJson = text ? (() => { try { return JSON.parse(text); } catch { return text; } })() : null;
 

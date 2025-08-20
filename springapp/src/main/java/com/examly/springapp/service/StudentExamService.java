@@ -18,9 +18,13 @@ import com.examly.springapp.repository.QuestionRepository;
 import com.examly.springapp.repository.StudentAnswerRepository;
 import com.examly.springapp.repository.StudentExamRepository;
 import org.springframework.data.domain.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class StudentExamService {
+
+  private static final Logger log = LoggerFactory.getLogger(StudentExamService.class);
 
   @Autowired private StudentExamRepository studentExamRepository;
   @Autowired private ExamRepository examRepository;
@@ -31,7 +35,6 @@ public class StudentExamService {
     Exam exam = examRepository.findById(examId)
       .orElseThrow(() -> new IllegalArgumentException("Exam not found"));
 
-    // Enforce availability at start
     if (!Boolean.TRUE.equals(exam.getIsActive())) {
       throw new IllegalArgumentException("Exam not active");
     }
@@ -43,13 +46,11 @@ public class StudentExamService {
       exam, studentUsername, List.of("IN_PROGRESS", "COMPLETED")
     );
 
-    // Prevent parallel sessions
     boolean hasInProgress = existing.stream().anyMatch(se -> "IN_PROGRESS".equals(se.getStatus()));
     if (hasInProgress) {
       throw new IllegalArgumentException("Student already has an active attempt for this exam");
     }
 
-    // Enforce maximum attempts for completed attempts only
     Integer maxAttempts = exam.getMaxAttempts();
     if (maxAttempts != null && maxAttempts > 0) {
       long completed = existing.stream().filter(se -> "COMPLETED".equals(se.getStatus())).count();
@@ -62,10 +63,11 @@ public class StudentExamService {
     studentExam.setExam(exam);
     studentExam.setStudentUsername(studentUsername);
     studentExam.setStartTime(LocalDateTime.now());
-    // If endTime is non-nullable in schema, set a placeholder; it will be updated on completion
-    studentExam.setEndTime(studentExam.getStartTime());
+    studentExam.setEndTime(studentExam.getStartTime()); // placeholder if non-nullable
     studentExam.setStatus("IN_PROGRESS");
     studentExam = studentExamRepository.save(studentExam);
+
+    log.info("Exam start: student={} examId={} studentExamId={} at={}", studentUsername, examId, studentExam.getStudentExamId(), studentExam.getStartTime());
 
     Map<String, Object> response = new HashMap<>();
     response.put("studentExamId", studentExam.getStudentExamId());
@@ -76,7 +78,6 @@ public class StudentExamService {
     StudentExam studentExam = studentExamRepository.findById(studentExamId)
       .orElseThrow(() -> new IllegalArgumentException("StudentExam not found"));
 
-    // Allow answers only while in progress
     if (!"IN_PROGRESS".equals(studentExam.getStatus())) {
       throw new IllegalArgumentException("Exam is not in progress");
     }
@@ -97,7 +98,9 @@ public class StudentExamService {
     answer.setSelectedOption(selectedOption);
     answer.setIsCorrect(isCorrect);
 
-    return studentAnswerRepository.save(answer);
+    StudentAnswer saved = studentAnswerRepository.save(answer);
+    log.info("Answer submit: studentExamId={} questionId={} selected={} correct={}", studentExamId, questionId, selectedOption, isCorrect);
+    return saved;
   }
 
   public Map<String, Object> completeExam(Long studentExamId) {
@@ -123,6 +126,8 @@ public class StudentExamService {
     studentExam.setScore(totalScore);
     studentExam.setStatus("COMPLETED");
     studentExamRepository.save(studentExam);
+
+    log.info("Exam complete: studentExamId={} finalScore={} at={}", studentExamId, totalScore, studentExam.getEndTime());
 
     Map<String, Object> response = new HashMap<>();
     response.put("finalScore", totalScore);

@@ -19,17 +19,21 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
-    @PostMapping
-    public ResponseEntity<AdminDTO> createAdmin(@RequestBody Map<String, String> body) {
-        Admin admin = new Admin();
-        admin.setUsername(body.get("username"));
-        admin.setPassword(body.get("password"));
-        admin.setEmail(body.get("email"));
+@PostMapping
+public ResponseEntity<AdminDTO> createAdmin(@RequestBody Map<String, String> body) {
+  Admin admin = new Admin();
+  admin.setUsername(body.get("username"));
+  admin.setPassword(body.get("password"));
+  admin.setEmail(body.get("email"));
 
-        Admin saved = adminService.saveAdmin(admin);
-        AdminDTO responseDTO = new AdminDTO(saved.getUsername(), saved.getPassword(), saved.getEmail());
-        return ResponseEntity.ok(responseDTO);
-    }
+  Admin saved = adminService.saveAdmin(admin);
+
+  // Do NOT return password
+  AdminDTO responseDTO = new AdminDTO(saved.getUsername(), null, saved.getEmail());
+  return ResponseEntity.ok(responseDTO);
+}
+
+  
 
     @GetMapping("/{username}")
     public ResponseEntity<AdminDTO> getAdminByUsername(@PathVariable String username) {
