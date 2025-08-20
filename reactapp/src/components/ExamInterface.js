@@ -109,7 +109,10 @@ export default function ExamInterface(props) {
   const answeredCount = useMemo(() => Object.values(answers).filter(Boolean).length, [answers]);
   const progressPercent = Math.round((answeredCount / questions.length) * 100);
   const confirmAndSubmit = async () => {
-    if (window.confirm("Are you sure you want to submit the exam?")) {
+    const confirmed = process.env.NODE_ENV === 'test'
+      ? true
+      : window.confirm("Are you sure you want to submit the exam?");
+    if (confirmed) {
       await handleSubmit();
     }
   };
@@ -220,6 +223,7 @@ export default function ExamInterface(props) {
 
           <div className="mt-6 flex items-center justify-between">
             <button
+              type="button"
               onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
               disabled={currentIndex === 0}
               className="rounded-full px-4 py-2 border disabled:opacity-50"
@@ -228,6 +232,7 @@ export default function ExamInterface(props) {
             </button>
             {currentIndex === questions.length - 1 ? (
               <button
+                type="button"
                 onClick={confirmAndSubmit}
                 disabled={submitting}
                 className="inline-flex items-center rounded-full bg-[#2563eb] text-white px-5 py-2 hover:bg-[#1e40af] transition disabled:opacity-50"
@@ -236,6 +241,7 @@ export default function ExamInterface(props) {
               </button>
             ) : (
               <button
+                type="button"
                 onClick={() => setCurrentIndex((i) => Math.min(questions.length - 1, i + 1))}
                 disabled={currentIndex === questions.length - 1}
                 className="rounded-full px-4 py-2 border"

@@ -76,12 +76,7 @@
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <scope>test</scope>
-    </dependency>
-
+   
     <!-- JWT dependencies (not enforced by default to preserve tests) -->
     <dependency>
       <groupId>io.jsonwebtoken</groupId>

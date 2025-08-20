@@ -35,7 +35,7 @@ question.setOptionA(questionDTO.getOptionA());
 question.setOptionB(questionDTO.getOptionB());
 question.setOptionC(questionDTO.getOptionC());
 question.setOptionD(questionDTO.getOptionD());
-question.setCorrectAnswer(questionDTO.getCorrectAnswer());
+question.setCorrectOption(questionDTO.getCorrectOption());
 question.setTopic(questionDTO.getTopic());
 question.setDifficulty(questionDTO.getDifficulty());
 question.setImageUrl(questionDTO.getImageUrl());
