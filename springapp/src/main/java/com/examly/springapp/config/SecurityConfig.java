@@ -19,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 
 
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.List;
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
 @ConditionalOnProperty(name = "app.security.enabled", havingValue = "true", matchIfMissing = true)
+@Profile("!test")
 public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
