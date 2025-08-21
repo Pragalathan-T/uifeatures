@@ -46,8 +46,8 @@ public class StudentExamService {
       exam, studentUsername, List.of("IN_PROGRESS", "COMPLETED")
     );
 
-    boolean hasInProgress = existing.stream().anyMatch(se -> "IN_PROGRESS".equals(se.getStatus()));
-    if (hasInProgress) {
+    boolean hasAttempt = existing != null && !existing.isEmpty();
+    if (hasAttempt) {
       throw new IllegalArgumentException("Student already has an active attempt for this exam");
     }
 
