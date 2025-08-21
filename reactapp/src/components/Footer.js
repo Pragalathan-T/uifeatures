@@ -5,17 +5,13 @@ import Brand from './Brand';
 export default function Footer() {
 return (
 <footer style={{
-position: 'fixed',
-bottom: 0,
-left: 0,
-right: 0,
 background: '#111827',
 color: 'white',
 padding: '12px 16px',
 display: 'flex',
 justifyContent: 'space-between',
 alignItems: 'center',
-zIndex: 100
+marginTop: 24
 }}>
 <Brand label="Online Exam Portal" />
 <nav style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
