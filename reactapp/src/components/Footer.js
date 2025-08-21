@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Brand from './Brand';
 
 export default function Footer() {
 return (
@@ -16,7 +17,7 @@ justifyContent: 'space-between',
 alignItems: 'center',
 zIndex: 100
 }}>
-<div style={{ fontWeight: 600 }}>Online Exam Portal</div>
+<Brand label="Online Exam Portal" />
 <nav style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
 <Link to="/about" style={{ color: 'white', textDecoration: 'none' }}>About Us</Link>
 <a href="mailto:support@onlineexam.example" style={{ color: 'white', textDecoration: 'none' }}>support@onlineexam.example</a>

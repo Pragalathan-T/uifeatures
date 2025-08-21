@@ -1,0 +1,6 @@
+.qa{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.qa__table{width:100%;border-collapse:collapse}
+.qa__table th,.qa__table td{padding:8px;border-bottom:1px solid var(--border);text-align:left}
+.qa__err{color:#dc2626;margin:8px 0}
+.qa__msg{color:#059669;margin:8px 0}
+.qa__form{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
