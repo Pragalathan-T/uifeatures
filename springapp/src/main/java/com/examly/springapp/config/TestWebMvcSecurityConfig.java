@@ -2,6 +2,7 @@ package com.examly.springapp.config;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -23,6 +24,7 @@ public class TestWebMvcSecurityConfig {
 
     @Bean
     @Order(SecurityProperties.BASIC_AUTH_ORDER - 10)
+    @ConditionalOnBean(HttpSecurity.class)
     public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
