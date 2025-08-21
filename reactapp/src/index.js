@@ -5,6 +5,7 @@ import App from './App';
 import './index.css';
 import { AuthProvider } from './context/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import ToastProvider from './components/ui/ToastProvider.jsx';
 
 function RouterSwitcher() {
 const [useHash, setUseHash] = useState(true);
@@ -30,7 +31,9 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
 <React.StrictMode>
 <AuthProvider>
+<ToastProvider>
 <RouterSwitcher />
+</ToastProvider>
 </AuthProvider>
 </React.StrictMode>
 );

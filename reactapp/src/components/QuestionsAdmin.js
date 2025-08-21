@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import api from '../utils/api';
 import './QuestionsAdmin.css';
+import Skeleton from './ui/Skeleton.jsx';
+import useDebouncedValue from '../hooks/useDebouncedValue';
+import Input from './ui/Input.jsx';
+import Button from './ui/Button.jsx';
 
 export default function QuestionsAdmin() {
     const [page, setPage] = useState(0);
@@ -20,18 +24,20 @@ export default function QuestionsAdmin() {
     });
     const [msg, setMsg] = useState(null);
     const [err, setErr] = useState(null);
+    const [loading, setLoading] = useState(false);
     // client-side filters
     const [q, setQ] = useState('');
     const [topic, setTopic] = useState('');
     const [difficulty, setDifficulty] = useState('');
 
     const load = async () => {
+        setLoading(true);
         try {
             const res = await api.listQuestions({ page, size, sortBy, sortDir });
             setData(res.data);
         } catch {
             setErr('Failed to load questions');
-        }
+        } finally { setLoading(false); }
     };
 
     useEffect(() => { load(); }, [page, size, sortBy, sortDir]);
@@ -50,26 +56,27 @@ export default function QuestionsAdmin() {
         try { await api.deleteQuestion(id); load(); } catch { setErr('Delete failed'); }
         };
 
+        const debouncedQ = useDebouncedValue(q, 300);
         const processed = useMemo(() => {
         let rows = (data.content || []);
-        if (q) {
-        const l = q.toLowerCase();
+        if (debouncedQ) {
+        const l = debouncedQ.toLowerCase();
         rows = rows.filter(x => (x.questionText||'').toLowerCase().includes(l));
         }
         if (topic) rows = rows.filter(x => (x.topic||'').toLowerCase() === topic.toLowerCase());
         if (difficulty) rows = rows.filter(x => (x.difficulty||'').toLowerCase() === difficulty.toLowerCase());
         return rows;
-        }, [data, q, topic, difficulty]);
+        }, [data, debouncedQ, topic, difficulty]);
 
         return (
         <div className="qa">
         <h2>Questions</h2>
-        {err && <p className="qa__err">{err}</p>}
-        {msg && <p className="qa__msg">{msg}</p>}
+        {err && <p className="qa__err" aria-live="polite">{err}</p>}
+        {msg && <p className="qa__msg" aria-live="polite">{msg}</p>}
 
         <div style={{ display:'flex', gap:12, marginBottom:12, flexWrap:'wrap' }}>
-        <input placeholder="Search text" value={q} onChange={(e)=>{ setQ(e.target.value); setPage(0); }} />
-        <input placeholder="Filter topic" value={topic} onChange={(e)=>{ setTopic(e.target.value); setPage(0); }} />
+        <Input placeholder="Search text" value={q} onChange={(e)=>{ setQ(e.target.value); setPage(0); }} />
+        <Input placeholder="Filter topic" value={topic} onChange={(e)=>{ setTopic(e.target.value); setPage(0); }} />
         <select value={difficulty} onChange={(e)=>{ setDifficulty(e.target.value); setPage(0); }}>
         <option value="">All difficulties</option>
         <option value="EASY">EASY</option>
@@ -78,6 +85,13 @@ export default function QuestionsAdmin() {
         </select>
         </div>
 
+        {loading ? (
+          <div style={{ padding: 12 }}>
+            <Skeleton lines={1} className="mb-2" />
+            <Skeleton lines={1} className="mb-2" />
+            <Skeleton lines={1} />
+          </div>
+        ) : (
         <table className="qa__table">
         <thead><tr><th>ID</th><th>Text</th><th>Marks</th><th>Actions</th></tr></thead>
         <tbody>
@@ -88,33 +102,28 @@ export default function QuestionsAdmin() {
         <td>{rowId}</td>
         <td>{qr.questionText}</td>
         <td>{qr.marks}</td>
-        <td><button onClick={() => remove(rowId)}>Delete</button></td>
+        <td><Button variant="outline" onClick={() => remove(rowId)}>Delete</Button></td>
         </tr>
         );
         })}
         </tbody>
         </table>
-        <div className="qa__pager">
-        <button disabled={page===0} onClick={() => setPage(p => p-1)}>Prev</button>
-        <span>Page {page+1} of {data.totalPages||1}</span>
-        <button disabled={page+1>=(data.totalPages||1)} onClick={() => setPage(p => p+1)}>Next</button>
-        </div>
+        )}
 
         <h3>Add New Question</h3>
         <form className="qa__form" onSubmit={submit}>
-        <input placeholder="Question text" value={form.questionText} onChange={e=>setForm({...form, questionText:e.target.value})} />
-        <input placeholder="Option A" value={form.optionA} onChange={e=>setForm({...form, optionA:e.target.value})} />
-        <input placeholder="Option B" value={form.optionB} onChange={e=>setForm({...form, optionB:e.target.value})} />
-        <input placeholder="Option C" value={form.optionC} onChange={e=>setForm({...form, optionC:e.target.value})} />
-        <input placeholder="Option D" value={form.optionD} onChange={e=>setForm({...form, optionD:e.target.value})} />
+        <Input placeholder="Question text" value={form.questionText} onChange={e=>setForm({...form, questionText:e.target.value})} />
+        <Input placeholder="Option A" value={form.optionA} onChange={e=>setForm({...form, optionA:e.target.value})} />
+        <Input placeholder="Option B" value={form.optionB} onChange={e=>setForm({...form, optionB:e.target.value})} />
+        <Input placeholder="Option C" value={form.optionC} onChange={e=>setForm({...form, optionC:e.target.value})} />
+        <Input placeholder="Option D" value={form.optionD} onChange={e=>setForm({...form, optionD:e.target.value})} />
         <select value={form.correctOption} onChange={e=>setForm({...form, correctOption:e.target.value})}>
         <option>A</option><option>B</option><option>C</option><option>D</option>
         </select>
-        <input type="number" placeholder="Marks" value={form.marks} onChange={e=>setForm({...form, marks:Number(e.target.value)})} />
-        <input placeholder="Exam ID (optional)" value={form.examId} onChange={e=>setForm({...form, examId:e.target.value})} />
-        <button type="submit">Add</button>
+        <Input type="number" placeholder="Marks" value={form.marks} onChange={e=>setForm({...form, marks:Number(e.target.value)})} />
+        <Input placeholder="Exam ID (optional)" value={form.examId} onChange={e=>setForm({...form, examId:e.target.value})} />
+        <Button type="submit">Add</Button>
         </form>
         </div>
         );
         }
-    

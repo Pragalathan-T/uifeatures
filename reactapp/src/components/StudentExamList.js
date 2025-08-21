@@ -1,18 +1,24 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
+import useDebouncedValue from '../hooks/useDebouncedValue';
+import Skeleton from './ui/Skeleton.jsx';
+import Input from './ui/Input.jsx';
+import Button from './ui/Button.jsx';
+import Card from './ui/Card.jsx';
 
 export default function StudentExamList() {
   const [exams, setExams] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const [q, setQ] = useState('');
-  const [difficulty, setDifficulty] = useState('');
-  const [status, setStatus] = useState('');
-  const [sortBy, setSortBy] = useState('title');
-  const [sortDir, setSortDir] = useState('asc');
-  const [page, setPage] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [q, setQ] = useState(searchParams.get('q') || '');
+  const [difficulty, setDifficulty] = useState(searchParams.get('difficulty') || '');
+  const [status, setStatus] = useState(searchParams.get('status') || '');
+  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'title');
+  const [sortDir, setSortDir] = useState(searchParams.get('sortDir') || 'asc');
+  const [page, setPage] = useState(Number(searchParams.get('page') || 0));
   const pageSize = 10;
 
   const navigate = useNavigate();
@@ -24,6 +30,19 @@ export default function StudentExamList() {
       .catch(() => { setError('Failed to load exams.'); })
       .finally(() => setLoading(false));
   }, []);
+
+  // Persist controls to URL
+  const debouncedQ = useDebouncedValue(q, 300);
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (debouncedQ) next.set('q', debouncedQ);
+    if (difficulty) next.set('difficulty', difficulty);
+    if (status) next.set('status', status);
+    if (sortBy) next.set('sortBy', sortBy);
+    if (sortDir) next.set('sortDir', sortDir);
+    if (page) next.set('page', String(page));
+    setSearchParams(next, { replace: true });
+  }, [debouncedQ, difficulty, status, sortBy, sortDir, page, setSearchParams]);
 
   const processed = useMemo(() => {
     let list = exams || [];
@@ -77,7 +96,20 @@ export default function StudentExamList() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-white p-4 md:p-6">
+      <div className="max-w-6xl mx-auto">
+        <Skeleton lines={1} className="mb-4" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <Card key={idx} className="p-4">
+              <Skeleton lines={3} />
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
   if (error) return <div>{error}</div>;
 
   return (
@@ -86,12 +118,7 @@ export default function StudentExamList() {
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Available Exams</h1>
 
         <div className="controls grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
-          <input
-            className="input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
-            placeholder="Search exams"
-            value={q}
-            onChange={(e) => { setPage(0); setQ(e.target.value); }}
-          />
+          <Input placeholder="Search exams" value={q} onChange={(e) => { setPage(0); setQ(e.target.value); }} />
           <select
             className="input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
             value={difficulty}
@@ -121,42 +148,26 @@ export default function StudentExamList() {
             <option value="duration">Sort: Duration</option>
             <option value="difficulty">Sort: Difficulty</option>
           </select>
-          <button
-            className="button rounded-full px-4 py-2 bg-white hover:bg-gray-50"
-            onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-          >
-            Dir: {sortDir.toUpperCase()}
-          </button>
+          <Button variant="outline" onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}>Dir: {sortDir.toUpperCase()}</Button>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {paged.map((exam) => (
-            <div key={exam.examId} className="card bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-4 hover:shadow-md transition">
-              <div className="card-header text-lg font-semibold text-gray-900">{exam.title}</div>
-              <div className="card-meta text-sm text-gray-600">{exam.description}</div>
-              <div className="card-meta text-sm">Duration: {exam.duration} min</div>
-              <div className="card-actions mt-3">
-                <button
-                  className="button button-primary inline-flex items-center rounded-full bg-[#2563eb] text-white px-4 py-2 hover:bg-[#1e40af] transition"
-                  onClick={() => handleStart(exam.examId, exam)}
-                >
-                  Start Exam
-                </button>
+            <Card key={exam.examId} className="p-4 hover:shadow-md transition">
+              <div className="text-lg font-semibold text-gray-900">{exam.title}</div>
+              <div className="text-sm text-gray-600">{exam.description}</div>
+              <div className="text-sm">Duration: {exam.duration} min</div>
+              <div className="mt-3">
+                <Button onClick={() => handleStart(exam.examId, exam)}>Start Exam</Button>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
 
         <div className="pager mt-6 flex items-center gap-3">
-          <button className="button rounded-full px-4 py-2 border disabled:opacity-50" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Prev</button>
+          <Button variant="outline" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Prev</Button>
           <span>Page {page + 1}</span>
-          <button
-            className="button rounded-full px-4 py-2 border disabled:opacity-50"
-            disabled={(page + 1) * pageSize >= processed.length}
-            onClick={() => setPage(p => p + 1)}
-          >
-            Next
-          </button>
+          <Button variant="outline" disabled={(page + 1) * pageSize >= processed.length} onClick={() => setPage(p => p + 1)}>Next</Button>
         </div>
       </div>
     </div>

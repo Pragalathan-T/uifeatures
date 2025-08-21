@@ -22,9 +22,30 @@ export default function ChatWidget() {
     setInput('');
     try {
       const userId = localStorage.getItem('username') || 'guest';
-      const res = await api.chatMessage({ message: text, userId });
-      const reply = res?.data?.reply || 'Sorry, I did not understand that.';
-      setMessages((m) => [...m, { role: 'assistant', text: reply }]);
+      // Try streaming SSE first for real-time AI; fallback to non-stream API
+      const streamUrl = `${process.env.REACT_APP_API_URL || ''}/api/chat/stream?message=${encodeURIComponent(text)}&userId=${encodeURIComponent(userId)}`.replace(/\/$/, '');
+      const res = await fetch(streamUrl, { headers: { Accept: 'text/event-stream' } });
+      if (res.ok && res.body && res.headers.get('content-type')?.includes('text/event-stream')) {
+        let acc = '';
+        setMessages((m) => [...m, { role: 'assistant', text: '' }]);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value);
+          acc += chunk;
+          setMessages((m) => {
+            const copy = [...m];
+            copy[copy.length - 1] = { role: 'assistant', text: acc };
+            return copy;
+          });
+        }
+      } else {
+        const fallback = await api.chatMessage({ message: text, userId });
+        const reply = fallback?.data?.reply || 'Sorry, I did not understand that.';
+        setMessages((m) => [...m, { role: 'assistant', text: reply }]);
+      }
     } catch {
       setMessages((m) => [...m, { role: 'assistant', text: 'Network error. Please try again.' }]);
     }

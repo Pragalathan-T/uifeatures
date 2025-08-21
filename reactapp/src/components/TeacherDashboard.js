@@ -1,17 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import Sidebar from './Sidebar';
+import useDebouncedValue from '../hooks/useDebouncedValue';
+import Skeleton from './ui/Skeleton.jsx';
+import Input from './ui/Input.jsx';
+import Button from './ui/Button.jsx';
 
 export default function TeacherDashboard({ teacherUsername }) {
 const [exams, setExams] = useState([]);
 const [error, setError] = useState(null);
 const [loading, setLoading] = useState(false);
-const [q, setQ] = useState('');
-const [status, setStatus] = useState('');
-const [page, setPage] = useState(0);
+const [searchParams, setSearchParams] = useSearchParams();
+const [q, setQ] = useState(searchParams.get('q') || '');
+const [status, setStatus] = useState(searchParams.get('status') || '');
+const [page, setPage] = useState(Number(searchParams.get('page') || 0));
 const [size] = useState(10);
-const [sortBy, setSortBy] = useState('createdAt');
-const [sortDir, setSortDir] = useState('desc');
+const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'createdAt');
+const [sortDir, setSortDir] = useState(searchParams.get('sortDir') || 'desc');
 
 useEffect(() => {
 if (!teacherUsername) return;
@@ -28,6 +34,17 @@ setError('Unexpected error');
 .finally(() => setLoading(false));
 // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [teacherUsername, page, size, sortBy, sortDir, status]);
+
+const debouncedQ = useDebouncedValue(q, 300);
+useEffect(() => {
+  const next = new URLSearchParams();
+  if (debouncedQ) next.set('q', debouncedQ);
+  if (status) next.set('status', status);
+  if (sortBy) next.set('sortBy', sortBy);
+  if (sortDir) next.set('sortDir', sortDir);
+  if (page) next.set('page', String(page));
+  setSearchParams(next, { replace: true });
+}, [debouncedQ, status, sortBy, sortDir, page, setSearchParams]);
 
 const filtered = useMemo(() => {
 if (!q) return exams;
@@ -51,7 +68,16 @@ setError('Unexpected error');
 }
 };
 
-if (loading) return <div className="p-4 text-gray-700">Loading...</div>;
+if (loading) return (
+  <div className="p-4">
+    <Skeleton lines={1} className="mb-4" />
+    <div className="space-y-2">
+      <Skeleton lines={1} />
+      <Skeleton lines={1} />
+      <Skeleton lines={1} />
+    </div>
+  </div>
+);
 if (error) {
 return <div className="p-4 text-red-600">{error}</div>;
 }
@@ -63,8 +89,7 @@ return (
 <h1 className="text-2xl font-bold text-gray-900 mb-4">Teacher Dashboard</h1>
 
 <div className="controls gap-3 flex flex-wrap mb-4">
-<input
-className="input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+<Input
 placeholder="Search title/description/topic"
 value={q}
 onChange={(e) => setQ(e.target.value)}
@@ -95,12 +120,7 @@ setSortBy(e.target.value);
 <option value="title">Sort: Title</option>
 <option value="duration">Sort: Duration</option>
 </select>
-<button
-className="button rounded-full px-4 py-2 bg-white hover:bg-gray-50"
-onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
->
-Dir: {sortDir.toUpperCase()}
-</button>
+<Button variant="outline" onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}>Dir: {sortDir.toUpperCase()}</Button>
 </div>
 
 <div className="card bg-white rounded-xl shadow-sm ring-1 ring-gray-200">
