@@ -21,6 +21,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.ObjectProvider;
 
 
 import java.util.List;
@@ -31,13 +32,13 @@ import java.util.List;
 @Profile("!test")
 public class SecurityConfig {
 
-  private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final ObjectProvider<JwtAuthenticationFilter> jwtAuthenticationFilterProvider;
 
   @Value("${security.enforce-roles:false}")
   private boolean enforceRoles;
 
-  public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-    this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+  public SecurityConfig(ObjectProvider<JwtAuthenticationFilter> jwtAuthenticationFilterProvider) {
+    this.jwtAuthenticationFilterProvider = jwtAuthenticationFilterProvider;
   }
 
   @Bean
@@ -63,7 +64,10 @@ public class SecurityConfig {
       );
     }
 
-    http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+    JwtAuthenticationFilter jwtFilter = jwtAuthenticationFilterProvider.getIfAvailable();
+    if (jwtFilter != null) {
+      http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+    }
     return http.build();
   }
 
