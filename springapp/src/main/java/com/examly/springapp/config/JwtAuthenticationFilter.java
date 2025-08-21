@@ -20,7 +20,7 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-  @Autowired
+  @Autowired(required = false)
   private JwtService jwtService;
 
   @Override
@@ -30,6 +30,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     if (authHeader != null && authHeader.startsWith("Bearer ")) {
       String token = authHeader.substring(7);
       try {
+        if (jwtService == null) {
+          filterChain.doFilter(request, response);
+          return;
+        }
         Claims claims = jwtService.parseToken(token);
         String username = claims.getSubject();
         String role = (String) claims.get("role");

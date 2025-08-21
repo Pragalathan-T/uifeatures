@@ -1,6 +1,7 @@
 package com.examly.springapp.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,13 +32,13 @@ import java.util.List;
 @Profile("!test")
 public class SecurityConfig {
 
-  private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final ObjectProvider<JwtAuthenticationFilter> jwtAuthenticationFilterProvider;
 
   @Value("${security.enforce-roles:false}")
   private boolean enforceRoles;
 
-  public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-    this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+  public SecurityConfig(ObjectProvider<JwtAuthenticationFilter> jwtAuthenticationFilterProvider) {
+    this.jwtAuthenticationFilterProvider = jwtAuthenticationFilterProvider;
   }
 
   @Bean
@@ -63,7 +64,10 @@ public class SecurityConfig {
       );
     }
 
-    http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+    JwtAuthenticationFilter jwtAuthenticationFilter = jwtAuthenticationFilterProvider.getIfAvailable();
+    if (jwtAuthenticationFilter != null) {
+      http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+    }
     return http.build();
   }
 
