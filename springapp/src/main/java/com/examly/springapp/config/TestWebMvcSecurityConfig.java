@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Import;
 
 @Configuration
 @Profile("test")
@@ -27,6 +28,11 @@ public class TestWebMvcSecurityConfig {
     @Bean(name = "rbac")
     public RbacService rbacServiceStub() {
         return new RbacService();
+    }
+
+    @Bean
+    public JwtService jwtService() {
+        return new JwtService();
     }
 }
 
