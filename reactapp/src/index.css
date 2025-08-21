@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root{
 --bg:#f7f8fa; --card:#ffffff; --border:#e6e8eb; --text:#111827; --muted:#6b7280;
 --accent:#2563eb; --success:#10b981; --warn:#f59e0b; --error:#ef4444;
