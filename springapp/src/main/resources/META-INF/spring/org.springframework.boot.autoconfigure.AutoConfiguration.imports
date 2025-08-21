@@ -1,0 +1,3 @@
+com.examly.springapp.config.TestWebMvcSecurityConfig
+com.examly.springapp.config.FallbackSecurityPermitAllAutoConfiguration
+com.examly.springapp.config.TestNoopSecurityAutoConfiguration
