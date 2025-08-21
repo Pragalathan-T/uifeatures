@@ -42,7 +42,10 @@
     },
     "transformIgnorePatterns": [
       "/node_modules/(?!axios)/"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^canvas$": "<rootDir>/src/__mocks__/canvas.js"
+    }
   },
   "browserslist": {
     "production": [
