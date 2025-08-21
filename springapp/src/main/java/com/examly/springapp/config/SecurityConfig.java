@@ -41,7 +41,6 @@ public class SecurityConfig {
   }
 
   @Bean
-  @ConditionalOnBean(HttpSecurity.class)
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
       .csrf(csrf -> csrf.disable())
