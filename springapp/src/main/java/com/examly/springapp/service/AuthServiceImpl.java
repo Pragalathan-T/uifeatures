@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.examly.springapp.config.JwtService;
 
 import java.util.Map;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthServiceImpl implements AuthService, UserDetailsService {
@@ -63,6 +64,7 @@ public class AuthServiceImpl implements AuthService, UserDetailsService {
     }
   }
 
+  @Transactional
   @Override
   public void register(RegisterRequestDTO request) {
     if (userRepository.existsByUsername(request.getUsername())) {
@@ -72,29 +74,25 @@ public class AuthServiceImpl implements AuthService, UserDetailsService {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
     }
 
+    User newUser;
+    String roleUpper = request.getRole() == null ? "STUDENT" : request.getRole().toUpperCase();
+    switch (roleUpper) {
+      case "TEACHER": newUser = new Teacher(); break;
+      case "ADMIN": newUser = new Admin(); break;
+      case "STUDENT": newUser = new Student(); break;
+      default: throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role");
+    }
+
+    newUser.setName(request.getName());
+    newUser.setEmail(request.getEmail());
+    newUser.setUsername(request.getUsername());
+    newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+    newUser.setRole(roleUpper);
+
     try {
-      User newUser;
-      String roleUpper = request.getRole() == null ? "STUDENT" : request.getRole().toUpperCase();
-      switch (roleUpper) {
-        case "TEACHER": newUser = new Teacher(); break;
-        case "ADMIN": newUser = new Admin(); break;
-        case "STUDENT": newUser = new Student(); break;
-        default: throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role");
-      }
-
-      newUser.setName(request.getName());
-      newUser.setEmail(request.getEmail());
-      newUser.setUsername(request.getUsername());
-      newUser.setPassword(passwordEncoder.encode(request.getPassword()));
-      newUser.setRole(roleUpper);
-
-      userRepository.save(newUser);
+      userRepository.saveAndFlush(newUser);
     } catch (DataIntegrityViolationException ex) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, "Email or Username already exists");
-    } catch (ResponseStatusException ex) {
-      throw ex;
-    } catch (Exception ex) {
-      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Registration failed");
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Email or Username already exists", ex);
     }
   }
 

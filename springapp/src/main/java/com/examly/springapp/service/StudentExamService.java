@@ -42,22 +42,15 @@ public class StudentExamService {
       throw new IllegalArgumentException("Exam expired");
     }
 
-    // List<StudentExam> existing = studentExamRepository.findByExamAndStudentUsernameAndStatusIn(
-    //   exam, studentUsername, List.of("IN_PROGRESS", "COMPLETED")
-    // );
+    List<StudentExam> existing = studentExamRepository.findByExamAndStudentUsernameAndStatusIn(
+      exam, studentUsername, List.of("IN_PROGRESS", "COMPLETED")
+    );
 
-    // boolean hasInProgress = existing.stream().anyMatch(se -> "IN_PROGRESS".equals(se.getStatus()));
-    // if (hasInProgress) {
-    //   throw new IllegalArgumentException("Student already has an active attempt for this exam");
-    // }
-List<StudentExam> existing = studentExamRepository.findByExamAndStudentUsernameAndStatusIn(
-  exam, studentUsername, List.of("IN_PROGRESS", "COMPLETED")
-);
+    boolean hasAttempt = existing != null && !existing.isEmpty();
+    if (hasAttempt) {
+      throw new IllegalArgumentException("Student already has an active attempt for this exam");
+    }
 
-boolean hasAttempt = existing != null && !existing.isEmpty();
-if (hasAttempt) {
-  throw new IllegalArgumentException("Student already has an active attempt for this exam");
-}
     Integer maxAttempts = exam.getMaxAttempts();
     if (maxAttempts != null && maxAttempts > 0) {
       long completed = existing.stream().filter(se -> "COMPLETED".equals(se.getStatus())).count();

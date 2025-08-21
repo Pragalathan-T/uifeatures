@@ -12,13 +12,18 @@ const authFetch = (url, options = {}) => {
   if (token) headers['Authorization'] = `Bearer ${token}`;
   return fetch(url, { ...options, headers });
 };
-
+// 
+// const handleAuthFailure = () => {
+//   // Lightweight handler: clear credentials so future calls are unauthenticated
+//   localStorage.removeItem('token');
+//   // Optional: also clear role/username if you want
+//   // localStorage.removeItem('role');
+//   // localStorage.removeItem('username');
+// };
 const handleAuthFailure = () => {
-  // Lightweight handler: clear credentials so future calls are unauthenticated
   localStorage.removeItem('token');
-  // Optional: also clear role/username if you want
-  // localStorage.removeItem('role');
-  // localStorage.removeItem('username');
+  localStorage.removeItem('role');
+  localStorage.removeItem('username');
 };
 
 const toData = async (response) => {

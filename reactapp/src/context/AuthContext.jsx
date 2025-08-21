@@ -20,16 +20,29 @@ useEffect(() => {
 if (username) localStorage.setItem('username', username); else localStorage.removeItem('username');
 }, [username]);
 
+// const login = useCallback(async ({ username: user, password }) => {
+// const res = await api.login({ username: user, password });
+// const data = res?.data || {};
+// const nextToken = data.token || 'dummy-token';
+// const nextRole = (data.role || 'STUDENT').toUpperCase();
+// const nextUsername = data.username || user;
+// setToken(nextToken);
+// setRole(nextRole);
+// setUsername(nextUsername);
+// return { token: nextToken, role: nextRole, username: nextUsername };
+// }, []);
+
 const login = useCallback(async ({ username: user, password }) => {
-const res = await api.login({ username: user, password });
-const data = res?.data || {};
-const nextToken = data.token || 'dummy-token';
-const nextRole = (data.role || 'STUDENT').toUpperCase();
-const nextUsername = data.username || user;
-setToken(nextToken);
-setRole(nextRole);
-setUsername(nextUsername);
-return { token: nextToken, role: nextRole, username: nextUsername };
+  const res = await api.login({ username: user, password });
+  const data = res?.data || {};
+  const nextToken = data.token; // must be present
+  if (!nextToken) throw new Error('Missing auth token from server');
+  const nextRole = (data.role || 'STUDENT').toUpperCase();
+  const nextUsername = data.username || user;
+  setToken(nextToken);
+  setRole(nextRole);
+  setUsername(nextUsername);
+  return { token: nextToken, role: nextRole, username: nextUsername };
 }, []);
 
 const logout = useCallback(async () => {
