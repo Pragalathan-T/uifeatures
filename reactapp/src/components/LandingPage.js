@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Brand from './Brand';
 
 export default function LandingPage() {
 return (
@@ -7,8 +8,7 @@ return (
 <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-200">
 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 <div className="flex items-center gap-2">
-<div className="h-8 w-8 rounded bg-[#2563eb] text-white grid place-items-center font-bold">OE</div>
-<span className="font-semibold text-gray-900">Online Exam Portal</span>
+<Brand label="Online Exam Portal" />
 </div>
 <nav className="flex items-center gap-6 text-sm">
 <Link to="/" className="text-gray-700 hover:text-[#2563eb]">Home</Link>
@@ -46,12 +46,12 @@ return (
 <div className="relative">
 <div className="grid grid-cols-3 gap-4 text-white">
 <div className="col-span-1 rounded-xl bg-white/10 p-4 shadow-lg backdrop-blur">
-<div className="text-3xl">�</div>
+<div className="text-3xl"></div>
 <div className="mt-2 font-semibold">Create Exams</div>
 <p className="text-sm text-white/80">Design exams with flexible question types.</p>
 </div>
 <div className="col-span-1 rounded-xl bg-white/10 p-4 shadow-lg backdrop-blur">
-<div className="text-3xl">�</div>
+<div className="text-3xl"></div>
 <div className="mt-2 font-semibold">Take Exams</div>
 <p className="text-sm text-white/80">Secure, distraction-free test experience.</p>
 </div>

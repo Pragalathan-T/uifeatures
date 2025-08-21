@@ -52,7 +52,7 @@ export default function ChatWidget() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed right-4 z-50" style={{ bottom: open ? 100 : 24 }}>
       {open && (
         <div className="w-80 h-96 bg-white rounded-xl shadow-lg ring-1 ring-gray-200 flex flex-col overflow-hidden">
           <div className="px-4 py-2 bg-[#2563eb] text-white font-semibold">Assistant</div>

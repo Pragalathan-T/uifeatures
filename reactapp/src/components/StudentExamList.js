@@ -118,37 +118,46 @@ export default function StudentExamList() {
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Available Exams</h1>
 
         <div className="controls grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
-          <Input placeholder="Search exams" value={q} onChange={(e) => { setPage(0); setQ(e.target.value); }} />
-          <select
-            className="input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
-            value={difficulty}
-            onChange={(e) => { setPage(0); setDifficulty(e.target.value); }}
-          >
-            <option value="">All difficulties</option>
-            <option value="EASY">EASY</option>
-            <option value="MEDIUM">MEDIUM</option>
-            <option value="HARD">HARD</option>
-          </select>
-          <select
-            className="input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
-            value={status}
-            onChange={(e) => { setPage(0); setStatus(e.target.value); }}
-          >
-            <option value="">All statuses</option>
-            <option value="active">Active</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="expired">Expired</option>
-          </select>
-          <select
-            className="input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
-            value={sortBy}
-            onChange={(e) => { setPage(0); setSortBy(e.target.value); }}
-          >
-            <option value="title">Sort: Title</option>
-            <option value="duration">Sort: Duration</option>
-            <option value="difficulty">Sort: Difficulty</option>
-          </select>
-          <Button variant="outline" onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}>Dir: {sortDir.toUpperCase()}</Button>
+          <Input leftIcon={<span>🔎</span>} placeholder="Search exams" value={q} onChange={(e) => { setPage(0); setQ(e.target.value); }} />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden>🎯</span>
+            <select
+              className="pl-9 input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+              value={difficulty}
+              onChange={(e) => { setPage(0); setDifficulty(e.target.value); }}
+            >
+              <option value="">All difficulties</option>
+              <option value="EASY">EASY</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="HARD">HARD</option>
+            </select>
+          </div>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden>⏱️</span>
+            <select
+              className="pl-9 input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+              value={status}
+              onChange={(e) => { setPage(0); setStatus(e.target.value); }}
+            >
+              <option value="">All statuses</option>
+              <option value="active">Active</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="expired">Expired</option>
+            </select>
+          </div>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden>↕️</span>
+            <select
+              className="pl-9 input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+              value={sortBy}
+              onChange={(e) => { setPage(0); setSortBy(e.target.value); }}
+            >
+              <option value="title">Sort: Title</option>
+              <option value="duration">Sort: Duration</option>
+              <option value="difficulty">Sort: Difficulty</option>
+            </select>
+          </div>
+          <Button variant="outline" leftIcon={<span>{sortDir === 'asc' ? '⬆️' : '⬇️'}</span>} onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}>Dir: {sortDir.toUpperCase()}</Button>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -158,16 +167,16 @@ export default function StudentExamList() {
               <div className="text-sm text-gray-600">{exam.description}</div>
               <div className="text-sm">Duration: {exam.duration} min</div>
               <div className="mt-3">
-                <Button onClick={() => handleStart(exam.examId, exam)}>Start Exam</Button>
+                <Button onClick={() => handleStart(exam.examId, exam)} leftIcon={<span>▶️</span>}>Start Exam</Button>
               </div>
             </Card>
           ))}
         </div>
 
         <div className="pager mt-6 flex items-center gap-3">
-          <Button variant="outline" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Prev</Button>
+          <Button variant="outline" disabled={page === 0} onClick={() => setPage(p => p - 1)} leftIcon={<span>◀️</span>}>Prev</Button>
           <span>Page {page + 1}</span>
-          <Button variant="outline" disabled={(page + 1) * pageSize >= processed.length} onClick={() => setPage(p => p + 1)}>Next</Button>
+          <Button variant="outline" disabled={(page + 1) * pageSize >= processed.length} onClick={() => setPage(p => p + 1)} rightIcon={<span>▶️</span>}>Next</Button>
         </div>
       </div>
     </div>

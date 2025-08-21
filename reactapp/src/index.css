@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root{
 --bg:#f7f8fa; --card:#ffffff; --border:#e6e8eb; --text:#111827; --muted:#6b7280;
 --accent:#2563eb; --success:#10b981; --warn:#f59e0b; --error:#ef4444;
@@ -8,31 +12,32 @@ html,body,#root{height:100%}
 nav ul{list-style:none;display:flex;gap:12px;padding:8px 16px;margin:0}
 nav a{text-decoration:none;color:var(--accent)}
 .table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-.table th,.table td{padding:10px;border-bottom:1px solid var(--border)}
-.table tr:nth-child(even){background:#fafafa}
-.table tr:hover{background:#f3f4f6}
-.input, select, textarea{padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:#fff}
-.button{padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:#fff;cursor:pointer}
+.table th{padding:10px;border-bottom:1px solid var(--border);text-align:left;background:#f3f6ff;color:#1f2a48}
+.table td{padding:10px;border-bottom:1px solid var(--border)}
+.table tr:nth-child(even){background:#f9fbff}
+.table tr:hover{background:#eef5ff}
+.input, select, textarea{padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;transition:box-shadow .15s, border-color .15s}
+.input:focus, select:focus, textarea:focus{outline:none;border-color:#93c5fd;box-shadow:0 0 0 3px rgba(147,197,253,.35)}
+.button{padding:10px 14px;border-radius:999px;border:1px solid var(--border);background:#fff;cursor:pointer;transition:transform .05s, box-shadow .15s}
+.button:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.button:active{transform:translateY(1px)}
 .button-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-.pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px}
-.pill-success{border-color:var(--success);color:var(--success)}
-.pill-warn{border-color:var(--warn);color:var(--warn)}
-.pill-error{border-color:var(--error);color:var(--error)}
+.pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;background:#fff}
+.pill-success{border-color:var(--success);color:#065f46;background:#ecfdf5}
+.pill-warn{border-color:var(--warn);color:#7c2d12;background:#fffbeb}
+.pill-error{border-color:var(--error);color:#7f1d1d;background:#fef2f2}
 .section{margin:16px}
 .controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .pager{display:flex;align-items:center;gap:12px;margin-top:12px}
 
-
 .page{max-width:900px;margin:24px auto;padding:0 16px}
 .center{display:flex;align-items:center;justify-content:center}
-
 
 .form{display:grid;gap:12px}
 .form-2col{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
 .form-2col > *{min-width:0}
 .form label{display:block;margin-bottom:6px;color:var(--muted);font-size:14px}
 .form .input, .form select, .form textarea{width:100%}
-
 
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
 .card-header{font-weight:600;margin-bottom:8px}
