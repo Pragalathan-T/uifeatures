@@ -45,11 +45,10 @@ public class StudentExamService {
     List<StudentExam> existing = studentExamRepository.findByExamAndStudentUsernameAndStatusIn(
       exam, studentUsername, List.of("IN_PROGRESS", "COMPLETED")
     );
-
-    boolean hasAttempt = existing != null && !existing.isEmpty();
-    if (hasAttempt) {
-      throw new IllegalArgumentException("Student already has an active attempt for this exam");
-    }
+boolean hasAttempt = existing != null && !existing.isEmpty();
+if (hasAttempt) {
+  throw new IllegalArgumentException("Student already has an active attempt for this exam");
+}
 
     Integer maxAttempts = exam.getMaxAttempts();
     if (maxAttempts != null && maxAttempts > 0) {

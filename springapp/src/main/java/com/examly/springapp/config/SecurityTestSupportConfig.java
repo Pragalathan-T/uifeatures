@@ -22,8 +22,6 @@ public class SecurityTestSupportConfig {
     @Bean
     @ConditionalOnMissingBean(AuthenticationManager.class)
     public AuthenticationManager authenticationManager() {
-        return authentication -> {
-            throw new BadCredentialsException("Authentication not available in tests");
-        };
+        return authentication -> { throw new BadCredentialsException("Authentication not available in tests"); };
     }
 }

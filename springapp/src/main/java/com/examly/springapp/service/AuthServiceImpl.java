@@ -64,37 +64,37 @@ public class AuthServiceImpl implements AuthService, UserDetailsService {
     }
   }
 
-  @Transactional
-  @Override
-  public void register(RegisterRequestDTO request) {
-    if (userRepository.existsByUsername(request.getUsername())) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already in use");
-    }
-    if (userRepository.existsByEmail(request.getEmail())) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
-    }
-
-    User newUser;
-    String roleUpper = request.getRole() == null ? "STUDENT" : request.getRole().toUpperCase();
-    switch (roleUpper) {
-      case "TEACHER": newUser = new Teacher(); break;
-      case "ADMIN": newUser = new Admin(); break;
-      case "STUDENT": newUser = new Student(); break;
-      default: throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role");
-    }
-
-    newUser.setName(request.getName());
-    newUser.setEmail(request.getEmail());
-    newUser.setUsername(request.getUsername());
-    newUser.setPassword(passwordEncoder.encode(request.getPassword()));
-    newUser.setRole(roleUpper);
-
-    try {
-      userRepository.saveAndFlush(newUser);
-    } catch (DataIntegrityViolationException ex) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, "Email or Username already exists", ex);
-    }
+@Transactional
+@Override
+public void register(RegisterRequestDTO request) {
+  if (userRepository.existsByUsername(request.getUsername())) {
+    throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already in use");
   }
+  if (userRepository.existsByEmail(request.getEmail())) {
+    throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
+  }
+
+  User newUser;
+  String roleUpper = request.getRole() == null ? "STUDENT" : request.getRole().toUpperCase();
+  switch (roleUpper) {
+    case "TEACHER": newUser = new Teacher(); break;
+    case "ADMIN": newUser = new Admin(); break;
+    case "STUDENT": newUser = new Student(); break;
+    default: throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role");
+  }
+
+  newUser.setName(request.getName());
+  newUser.setEmail(request.getEmail());
+  newUser.setUsername(request.getUsername());
+  newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+  newUser.setRole(roleUpper);
+
+  try {
+    userRepository.saveAndFlush(newUser);
+  } catch (DataIntegrityViolationException ex) {
+    throw new ResponseStatusException(HttpStatus.CONFLICT, "Email or Username already exists", ex);
+  }
+}
 
   @Override
   public void logout() {
